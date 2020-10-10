@@ -57,7 +57,6 @@ class Vec2(tuple):
     @property
     def mag(self):
         return math.sqrt((self[0]**2)+(self[1]**2))
-
     @property
     def magPy(self):
         return math.sqrt((self[0]**2)+(self[1]**2))
@@ -67,6 +66,15 @@ class Vec2(tuple):
     @property
     def mag4(self):
         return max(abs(self[0]),abs(self[1]))
+
+    def dist(self, other):
+        return (other-self).mag
+    def distPy(self, other):
+        return (other-self).magPy
+    def distMan(self, other):
+        return (other-self).magMan
+    def dist4(self, other):
+        return (other-self).mag4
 
     @property
     def norm(self):
