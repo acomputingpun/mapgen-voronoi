@@ -1,2 +1,2 @@
 def setPick(iterable):
-    return (k for k in iter).next()
+    return next(k for k in iterable)

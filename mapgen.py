@@ -2,7 +2,8 @@ import utils, vecs, pseudo
 
 class RegionSource():
     def __init__(self, tile):
-        self.tile
+        self.tile = tile
+        self.debugChar = self.grid.roller.choice("abcdefghijklmnopqrstuvwxyz")
 
     @property
     def xyPos(self):
@@ -20,6 +21,7 @@ class Tile():
     def __init__(self, grid, xyPos):
         self.grid = grid
         self.xyPos = vecs.Vec2(xyPos)
+        self.dominantSource = None
 
     def closestSource(self):
         bestSource = utils.setPick(self.grid.regionSources)
@@ -31,9 +33,12 @@ class Tile():
                 bestSourceDist = sourceDist
         return bestSource
     def vDist(self, other):
-        return self.parent.vDist(self, other)
+        return self.grid.vDist(self, other)
     def closestSourceDist(self):
         return self.vDist(self.closestSource())
+
+    def markDominantSource(self):
+        self.dominantSource = self.closestSource()
 
 class Grid():
     def __init__(self, xySize, nRegions):
@@ -46,6 +51,13 @@ class Grid():
         self.regionSources = []
         self.regions = []
 
+    @property
+    def xSize(self):
+        return self.xySize.x
+    @property
+    def ySize(self):
+        return self.xySize.y
+
     def lookup(self, xyPos):
         return self._allTiles[xyPos]
 
@@ -53,14 +65,14 @@ class Grid():
         yield from self._allTiles.values()
 
     def allPoses(self):
-        for y in range(self.xySize.y):
-            for x in range(self.xySize.x):
-                yield Vecs.vec2(x, y)
+        for y in range(self.ySize):
+            for x in range(self.xSize):
+                yield vecs.Vec2(x, y)
 
     def pickRandomTiles(self, nTiles):
         randomTiles = set([])
         for k in range(nTiles):
-            xyPos = (self.roller.randint(0, self.xySize.x), self.roller.randint(0, self.xySize.y))
+            xyPos = (self.roller.randint(0, self.xSize), self.roller.randint(0, self.ySize))
             randomTiles.add(self.lookup(xyPos))
         return randomTiles
 
@@ -68,6 +80,8 @@ class Grid():
         raise Exception ("To be overridden!")
 
 class VoronoiGrid(Grid):
+    presetMinDist = 2
+
     def generate(self, seed = 0):
         self.clear()
         self.roller = pseudo.Roller(seed)
@@ -75,20 +89,37 @@ class VoronoiGrid(Grid):
         while len(self.regionSources) < self.nRegions:
             self.rPlaceRegionSource()
 
+        for tile in self.allTiles():
+            tile.markDominantSource()
+
+    def debugPrint(self):
+        for y in range(self.ySize):
+            for x in range(self.xSize):
+                print(self.lookup((x, y)).dominantSource.debugChar, end='')
+            print()
+
     @staticmethod
     def vDist(item1, item2):
         return item1.xyPos.dist(item2.xyPos)
 
     def rPlaceRegionSource(self):
-        randomTiles = self.pickRandomTiles()
-        bestTile = utils.setPick(randomTiles)
-        bestDist = bestTile.closestSourceDist()
-        for tile in randomTiles:
-            tileDist = tile.closestSourceDist()
-            if tile.vDist(closestSource) < bestDist:
-                bestTile = tile
-                bestDist = tileDist
-        self.placeRegionSource(bestTile)
+        try:
+            randomTiles = self.pickRandomTiles(24)
+            bestTile = utils.setPick(randomTiles)
+            bestDist = bestTile.closestSourceDist()
+            for tile in randomTiles:
+                tileDist = tile.closestSourceDist()
+                if tileDist > bestDist:
+                    bestTile = tile
+                    bestDist = tileDist
+            if bestDist >= self.presetMinDist:
+                self.placeRegionSource(bestTile)
+        except StopIteration:
+            self.placeRegionSource(utils.setPick(self.allTiles()))
 
     def placeRegionSource(self, tile):
-        self.regionSources.append(RegionSource(self, tile))
+        self.regionSources.append(RegionSource(tile))
+
+vGrid = VoronoiGrid( (15, 500), 300 )
+vGrid.generate(10)
+vGrid.debugPrint()
