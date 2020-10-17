@@ -23,6 +23,14 @@ class Tile():
 
     def markDominantSource(self):
         self.dominantSource = self.closestSource()
+        self.dominantSource.initialTiles.add(self)
+
+
+    def adjacentTiles(self):
+        
+
+    def isBorderTile(self):
+        for adja
 
 class Grid():
     presetMinSourceDist = 2
