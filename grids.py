@@ -23,8 +23,7 @@ class Tile():
 
     def markDominantSource(self):
         self.dominantSource = self.closestSource()
-        self.dominantSource.initialTiles.add(self)
-
+        self.dominantSource.initialTiles.append(self)
 
     def adjacentTiles(self):
         for vec in dirconst.CARDINALS:
@@ -59,7 +58,7 @@ class Grid():
         return self.xySize.y
 
     def xyWrap(self, xyPos):
-        return vecs.Vec2( xyPos.x % self.xySize.x if self.wrapping[0] else xyPos.x, xyPos.y % self.xySize.y if self.wrapping[1] else xyPos.y )
+        return vecs.Vec2( xyPos[0] % self.xySize.x if self.wrapping[0] else xyPos[0], xyPos[1] % self.xySize.y if self.wrapping[1] else xyPos[1] )
 
     def _containsWrappedPos(xyPos):
         return 0 <= xyPos.x < self.xySize.x and 0 <= xyPos.y < self.xySize.y
@@ -80,7 +79,7 @@ class Grid():
     def pickRandomTiles(self, nTiles):
         randomTiles = []
         for k in range(nTiles):
-            xyPos = (self.roller.randint(0, self.xSize), self.roller.randint(0, self.ySize))
+            xyPos = vecs.Vec2(self.roller.randint(0, self.xSize), self.roller.randint(0, self.ySize))
             if (self.isValidRandomPos(xyPos)):
                 randomTiles.append(self.lookup(xyPos))
         return randomTiles

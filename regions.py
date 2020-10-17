@@ -27,7 +27,7 @@ class Region():
             raise Exception("Error: not yet inmplemented handling of noncontiguous regions")
 
         for tile in self.tiles:
-            if tile.isBorderTile(self)
+            if tile.isBorderTile(self):
                 self.borderTiles.add(tile)
             else:
                 self.innerTiles.add(tile)
