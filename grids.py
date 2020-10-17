@@ -1,41 +1,5 @@
 import utils, vecs, pseudo
-import regions
-
-class Tile():
-    def __init__(self, grid, xyPos):
-        self.grid = grid
-        self.xyPos = vecs.Vec2(xyPos)
-        self.dominantSource = None
-
-    def closestSource(self):
-        bestSource = utils.setPick(self.grid.regionSources)
-        bestSourceDist = self.vDist(bestSource)
-        for source in self.grid.regionSources:
-            sourceDist = self.vDist(source)
-            if sourceDist < bestSourceDist:
-                bestSource = source
-                bestSourceDist = sourceDist
-        return bestSource
-    def vDist(self, other):
-        return self.grid.vDist(self, other)
-    def closestSourceDist(self):
-        return self.vDist(self.closestSource())
-
-    def markDominantSource(self):
-        self.dominantSource = self.closestSource()
-        self.dominantSource.initialTiles.append(self)
-
-    def adjacentTiles(self):
-        for vec in dirconst.CARDINALS:
-            adjPos = self.xyPos + vec
-            if self.grid.containsPos( adjPos ):
-                yield self.grid.lookup(adjPos)
-
-    def isBorderTile(self):
-        for adjTile in self.adjacentTiles():
-            if adjTile.dominantSource is not self.dominantSource:
-                return True
-        return False
+import regions, tiles
 
 class Grid():
     presetMinSourceDist = 2
@@ -47,7 +11,7 @@ class Grid():
         self.wrapping = wrapping
 
     def clear(self):
-        self._allTiles = { xyPos : Tile(self, xyPos) for xyPos in self.allPoses() }
+        self._allTiles = { xyPos : tiles.Tile(self, xyPos) for xyPos in self.allPoses() }
         self.regionSources = []
 
     @property
@@ -60,7 +24,7 @@ class Grid():
     def xyWrap(self, xyPos):
         return vecs.Vec2( xyPos[0] % self.xySize.x if self.wrapping[0] else xyPos[0], xyPos[1] % self.xySize.y if self.wrapping[1] else xyPos[1] )
 
-    def _containsWrappedPos(xyPos):
+    def _containsWrappedPos(self, xyPos):
         return 0 <= xyPos.x < self.xySize.x and 0 <= xyPos.y < self.xySize.y
     def containsPos(self, xyPos):
         return self._containsWrappedPos(self.xyWrap(xyPos))
