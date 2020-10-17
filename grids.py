@@ -27,10 +27,16 @@ class Tile():
 
 
     def adjacentTiles(self):
-        
+        for vec in dirconst.CARDINALS:
+            adjPos = self.xyPos + vec
+            if self.grid.containsPos( adjPos ):
+                yield self.grid.lookup(adjPos)
 
     def isBorderTile(self):
-        for adja
+        for adjTile in self.adjacentTiles():
+            if adjTile.dominantSource is not self.dominantSource:
+                return True
+        return False
 
 class Grid():
     presetMinSourceDist = 2
@@ -52,8 +58,16 @@ class Grid():
     def ySize(self):
         return self.xySize.y
 
+    def xyWrap(self, xyPos):
+        return vecs.Vec2( xyPos.x % self.xySize.x if self.wrapping[0] else xyPos.x, xyPos.y % self.xySize.y if self.wrapping[1] else xyPos.y )
+
+    def _containsWrappedPos(xyPos):
+        return 0 <= xyPos.x < self.xySize.x and 0 <= xyPos.y < self.xySize.y
+    def containsPos(self, xyPos):
+        return self._containsWrappedPos(self.xyWrap(xyPos))
+
     def lookup(self, xyPos):
-        return self._allTiles[xyPos]
+        return self._allTiles[self.xyWrap(xyPos)]
 
     def allTiles(self):
         yield from self._allTiles.values()
